@@ -1,0 +1,39 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+autopep8 = "*"
+docutils = "*"
+pylint = "*"
+mkdocs = "*"
+flake8 = "*"
+codecov = "*"
+coverage = "*"
+ipython = "*"
+
+[packages]
+wagtail = "*"
+wagtailmenus = "*"
+wagtailfontawesome = "*"
+django-mptt = "*"
+django-taggit = "*"
+django-filter = "*"
+django-allauth = "*"
+django-cors-middleware = "*"
+django-widget-tweaks = "*"
+django-polymorphic = "*"
+django-el-pagination = "*"
+django-select2 = "*"
+django-recaptcha = "*"
+django-environ = "*"
+django-storages = "*"
+django-heroku = "*"
+psycopg2 = "*"
+gunicorn = "*"
+qrcode = {extras = ["pil"],version = "*"}
+boto3 = "*"
+
+[requires]
+python_version = "3.7"
