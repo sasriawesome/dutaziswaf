@@ -49,11 +49,6 @@ INSTALLED_APPS = [
     'taggit',
     'mptt',
 
-    'django_numerators',
-    'django_extra_referrals',
-    'django_fundraisers',
-    'django_cashflow',
-
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.sites',
