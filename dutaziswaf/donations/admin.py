@@ -1,0 +1,298 @@
+from django.utils import translation
+from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, modeladmin_register
+from wagtail.contrib.modeladmin.helpers import PermissionHelper
+from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel, ObjectList
+
+from django_extra_referrals.models import Referral, Transaction
+from django_fundraisers.models import Fundraiser, FundraiserTransaction
+from django_cashflow.models import CashAccount, BankAccount
+
+from dutaziswaf.donations.models import (
+    Donation, Agreement, PaymentConfirmation, FundraiserWithdraw, ReferralWithdraw
+)
+
+_ = translation.ugettext_lazy
+
+
+class ReadOnlyPermissionHelper(PermissionHelper):
+    def user_can_edit_obj(self, user, obj):
+        return False
+
+    def user_can_create(self, user):
+        return False
+
+    def user_can_delete_obj(self, user, obj):
+        return False
+
+
+class DonationPermissionHelper(PermissionHelper):
+    def user_can_edit_obj(self, user, obj):
+        if obj:
+            if obj.is_cancelled or obj.is_paid:
+                return False
+        return super().user_can_edit_obj(user, obj)
+
+    def user_can_delete_obj(self, user, obj):
+        return False
+
+
+class AgreementModelAdmin(ModelAdmin):
+    menu_icon = 'fa-handshake-o',
+    menu_label = _('Agreements')
+    model = Agreement
+
+
+class BankAccountModelAdmin(ModelAdmin):
+    model = BankAccount
+    menu_icon = 'fa-institution',
+    menu_label = _('Bank Accounts')
+    list_display = ['name', 'bank_name', 'branch_office', 'account_name', 'account_number', 'checkin', 'checkout']
+
+    edit_handler = ObjectList([
+        MultiFieldPanel([
+            FieldPanel('name'),
+            FieldPanel('bank_name'),
+            FieldPanel('branch_office'),
+            FieldPanel('account_name'),
+            FieldPanel('account_number'),
+            FieldPanel('checkin'),
+            FieldPanel('checkout'),
+        ])
+    ])
+
+
+class CashAccountModelAdmin(ModelAdmin):
+    model = CashAccount
+    menu_icon = 'fa-dollar',
+    menu_label = _('Cash Accounts')
+    list_display = ['name', 'checkin', 'checkout']
+
+    edit_handler = ObjectList([
+        MultiFieldPanel([
+            FieldPanel('name'),
+            FieldPanel('checkin'),
+            FieldPanel('checkout'),
+        ])
+    ])
+
+
+class FundraiserModelAdmin(ModelAdmin):
+    model = Fundraiser
+    inspect_view_enabled = True
+    menu_icon = 'fa-user-circle-o',
+    menu_label = _('Fundraisers')
+    list_display = ['inner_id', 'name', 'founder', 'balance']
+
+    edit_handler = ObjectList([
+        MultiFieldPanel([
+            FieldPanel('name'),
+            FieldPanel('founder'),
+            FieldPanel('year_founded'),
+            FieldPanel('mission'),
+            FieldPanel('is_organization'),
+            FieldPanel('is_verified'),
+            FieldPanel('is_active'),
+        ], heading=_('Basic informations')),
+        MultiFieldPanel([
+            FieldPanel('email'),
+            FieldPanel('phone1'),
+            FieldPanel('whatsapp'),
+            FieldPanel('website'),
+        ], heading=_('Contact')),
+        MultiFieldPanel([
+            FieldPanel('street'),
+            FieldPanel('city'),
+            FieldPanel('province'),
+            FieldPanel('country'),
+            FieldPanel('zipcode'),
+        ], heading=_('Address')),
+    ])
+
+
+class FundraiserTransactionModelAdmin(ModelAdmin):
+    model = FundraiserTransaction
+    permission_helper_class = ReadOnlyPermissionHelper
+    inspect_view_enabled = True
+    menu_icon = 'fa-list-ul',
+    menu_label = _('Transactions')
+    list_filter = ['created_at', 'flow']
+    list_select_related = ['fundraiser']
+    search_fields = ['fundraiser__name']
+    list_display = ['fundraiser', 'note', 'flow', 'total', 'created_at']
+
+
+class ReferralModelAdmin(ModelAdmin):
+    model = Referral
+    inspect_view_enabled = True
+    menu_icon = 'fa-user-circle-o',
+    menu_label = _('Referrals')
+    list_select_related = ['account', 'parent']
+    search_fields = ['account__first_name', 'account__last_name']
+    list_display = ['inner_id', 'account', 'parent', 'decendants', 'downlines', 'level', 'created_at', 'balance']
+
+    def decendants(self, obj):
+        return obj.get_descendant_count()
+
+    def downlines(self, obj):
+        return obj.downlines.count()
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).only('inner_id', 'account', 'parent')
+
+    edit_handler = ObjectList([
+        MultiFieldPanel([
+            FieldPanel('parent'),
+            FieldPanel('account'),
+        ])
+    ])
+
+
+class ReferralTransactionModelAdmin(ModelAdmin):
+    model = Transaction
+    permission_helper_class = ReadOnlyPermissionHelper
+    inspect_view_enabled = True
+    menu_icon = 'fa-list-ul',
+    menu_label = _('Transactions')
+    list_filter = ['created_at', 'flow']
+    list_select_related = ['referral']
+    search_fields = ['referral__account__first_name', 'referral__account__username']
+    list_display = ['referral', 'note', 'flow', 'total', 'created_at']
+
+
+class DonationModelAdmin(ModelAdmin):
+    model = Donation
+    inspect_view_enabled = True
+    permission_helper_class = DonationPermissionHelper
+    menu_icon = 'fa-list-ul',
+    menu_label = _('Donations')
+    list_select_related = ['creator', 'referral', 'campaigner', 'fundraiser']
+    search_fields = ['fullname', 'creator__first_name', 'creator__last_name', 'creator__user_name']
+    list_display = ['inner_id', 'fullname', 'amount', 'fundraiser', 'referral', 'campaigner', 'is_paid', 'is_cancelled']
+
+    edit_handler = ObjectList([
+        MultiFieldPanel([
+            FieldPanel('fullname'),
+            FieldPanel('agreement'),
+            FieldPanel('referral'),
+            FieldPanel('fundraiser'),
+            # FieldPanel('campaigner'),
+            FieldPanel('donation'),
+        ])
+    ])
+
+
+class PaymentConfirmationModelAdmin(ModelAdmin):
+    model = PaymentConfirmation
+    menu_icon = 'fa-comments-o',
+    menu_label = _('Confirmations')
+    list_filter = ['created_at', 'is_verified', 'verified_at', ]
+    list_display = [
+        'created_at',
+        'creator',
+        'donation_number',
+        'account_name',
+        'account_number',
+        'bank_name',
+        'payment_method',
+        'amount',
+        'note',
+    ]
+
+    edit_handler = ObjectList([
+        MultiFieldPanel([
+            FieldPanel('name'),
+            FieldPanel('donation_number'),
+            FieldPanel('amount'),
+            FieldPanel('note'),
+        ], heading=_("Informasi")),
+        MultiFieldPanel([
+            FieldPanel('transfer_receipt'),
+            FieldPanel('account_name'),
+            FieldPanel('account_number'),
+            FieldPanel('bank_name'),
+            FieldPanel('payment_method'),
+        ], heading=_("Informasi Pengiriman"))
+    ])
+
+
+class ReferralWithdrawModelAdmin(ModelAdmin):
+    model = ReferralWithdraw
+    inspect_view_enabled = True
+    permission_helper_class = DonationPermissionHelper
+    menu_icon = 'fa-list-ul',
+    menu_label = _('Withdraw')
+    list_display = ['inner_id', 'referral', 'amount', 'creator', 'is_paid', 'is_cancelled']
+
+    edit_handler = ObjectList([
+        MultiFieldPanel([
+            FieldPanel('fullname'),
+            FieldPanel('referral'),
+            FieldPanel('amount'),
+            FieldPanel('creator'),
+        ])
+    ])
+
+
+class FundraiserWithdrawModelAdmin(ModelAdmin):
+    model = FundraiserWithdraw
+    inspect_view_enabled = True
+    permission_helper_class = DonationPermissionHelper
+    menu_icon = 'fa-list-ul',
+    menu_label = _('Withdraw')
+    list_display = ['inner_id', 'fundraiser', 'amount', 'creator', 'is_paid', 'is_cancelled']
+
+    edit_handler = ObjectList([
+        MultiFieldPanel([
+            FieldPanel('fullname'),
+            FieldPanel('fundraiser'),
+            FieldPanel('amount'),
+            FieldPanel('creator'),
+        ])
+    ])
+
+
+class ReferralModelAdminGroup(ModelAdminGroup):
+    menu_icon = 'fa-user-circle-o',
+    menu_label = _('Referrals')
+    items = [
+        ReferralModelAdmin,
+        ReferralTransactionModelAdmin,
+        ReferralWithdrawModelAdmin
+    ]
+
+
+class FundraiserModelAdminGroup(ModelAdminGroup):
+    menu_icon = 'fa-user-circle-o',
+    menu_label = _('Fundraisers')
+    items = [
+        FundraiserModelAdmin,
+        FundraiserTransactionModelAdmin,
+        FundraiserWithdrawModelAdmin
+    ]
+
+
+class DonationModelAdminGroup(ModelAdminGroup):
+    menu_icon = 'fa-heart',
+    menu_label = _('Fundraising')
+    items = [
+        AgreementModelAdmin,
+        DonationModelAdmin,
+        PaymentConfirmationModelAdmin
+    ]
+
+
+class PaymentModelAdminGroup(ModelAdminGroup):
+    menu_icon = 'fa-dollar',
+    menu_label = _('Payments')
+    items = [
+        CashAccountModelAdmin,
+        BankAccountModelAdmin
+    ]
+
+
+modeladmin_register(DonationModelAdminGroup)
+modeladmin_register(ReferralModelAdminGroup)
+modeladmin_register(FundraiserModelAdminGroup)
+modeladmin_register(PaymentModelAdminGroup)
+
+# from .admin_django import *

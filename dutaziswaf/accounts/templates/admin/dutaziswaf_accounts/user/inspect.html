@@ -1,0 +1,199 @@
+{% extends 'admin/base_site.html' %}
+{% load i18n static admin_urls humanize %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  .bold {
+    font-weight: bold;
+  }
+  .text-right {
+    text-align: right;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+  .avatar {
+    overflow: hidden;
+    border-radius: 50%;
+  }
+  #content-related .module h2#inspect__page-title {
+    background: none;
+    padding: 0;
+    margin-bottom: 3px;
+    border-bottom: none;
+    font-size: 1.3rem;
+    color: #333;
+    text-align: center;
+  }
+
+  #inspect__page-subtitle {
+    text-transform: capitalize;
+  }
+
+  #inspect__sidebar-header {
+    padding: 30px 15px;
+  }
+
+  .inspect__status-panel {
+    width: 100%;
+  }
+
+  .inspect__status-panel th {
+    text-align: center;
+  }
+
+  .inspect__status-panel__value {
+    margin: 0;
+    padding: .5rem 0;
+    font-weight: 700;
+  }
+
+  .inspect__status-panel__label {
+    font-weight: 500;
+  }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+  &rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  &rsaquo; {{ instance|truncatewords:"18" }}
+</div>
+{% endblock %}
+
+{% block coltype %}colSM{% endblock %}
+
+{% block title %}{% blocktrans %}{{ instance }}{% endblocktrans %}{% endblock %}
+
+{% block content %}
+
+<div id="content-main">
+
+  <div class="module">
+    <h2 id="inspect__title">Status</h2>
+    <table class="inspect__status-panel" width="100%">
+      <tr>
+        <th scope="col" align="center">
+          <h1 class="inspect__status-panel__value">
+            Rp. {{ instance.referral.total_donation | intcomma }}
+          </h1>
+          <span class="inspect__status-panel__label">
+            <a href="">Donations</a>
+          </span>
+        </th>
+        <th scope="col" align="center">
+          <h1 class="inspect__status-panel__value">
+            Rp. {{ instance.referral.total_fundraised | intcomma }}
+          </h1>
+          <span class="inspect__status-panel__label">
+            <a href="">Fundraised</a>
+          </span>
+        </th>
+        <th scope="col" align="center">
+          <h1 class="inspect__status-panel__value">
+            Rp. {{ instance.referral.total_fee | intcomma }}
+          </h1>
+          <span class="inspect__status-panel__label">
+            <a href="">Total Fee</a>
+          </span>
+        </th>
+        <th scope="col" align="center">
+          <h1 class="inspect__status-panel__value">
+            Rp. 300.000
+          </h1>
+          <span class="inspect__status-panel__label">
+            <a href="">Withdrawals</a>
+          </span>
+        </th>
+        <th scope="col" align="center">
+          <h1 class="inspect__status-panel__value">
+            {{ instance.referral.downlines.count }}/{{ instance.referral.get_descendant_count }}
+          </h1>
+          <span class="inspect__status-panel__label">
+            <a href="">Downlines/Decendants</a>
+          </span>
+        </th>
+      </tr>
+    </table>
+  </div>
+
+  <div class="module">
+    <h2 id="app-django_numerators">Donation Histories</h2>
+    <table width="100%">
+      <thead>
+      <tr>
+        <th scope="col">Inner ID</th>
+        <th scope="col">Created At</th>
+        <th class="text-right" scope="col">Amount</th>
+        <th class="text-right" scope="col">Random</th>
+        <th class="text-right" scope="col">Total Amount</th>
+        <th class="text-center" scope="col">Payment Method</th>
+        <th class="text-center" scope="col">Is Paid</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% with instance.donations.all as donations %}
+      {% if donations %}
+      {% for donation in donations %}
+      <tr>
+        <td scope="col"><a href="">{{ donation.inner_id }}</a></td>
+        <td scope="col">{{ donation.created_at }}</td>
+        <td class="text-right" scope="col">Rp. {{ donation.amount | intcomma }}</td>
+        <td class="text-right" scope="col">Rp. {{ donation.random }}</td>
+        <td class="text-right" scope="col">Rp. {{ donation.total_amount }}</td>
+        <td class="text-center" scope="col">{{ donation.payment_method }}</td>
+        <td class="text-center" scope="col">
+          {% if donation.is_paid %}
+          <img src="{% static 'admin/img/icon-yes.svg' %}" alt="Yes">
+          {% else%}
+          <img src="{% static 'admin/img/icon-no.svg' %}" alt="Yes">
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      {% else %}
+      <tr>
+        <td colspan="7" scope="col" class="text-center">{% trans 'Currently no donation here.' %}</td>
+      </tr>
+      {% endif %}
+      {% endwith %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="content-related" class="sidebar">
+  <div class="module">
+    <div id="inspect__sidebar-header" class="text-center">
+      <img class="avatar" src="{{ instance.avatar }}" alt="{{ instance }}">
+      <h2 id="inspect__page-title">{{ instance.fullname }}</h2>
+      <span id="inspect__page-subtitle">RID: #{{ instance.referral.inner_id }}</span>
+    </div>
+    <h3>{% trans 'Account' %}</h3>
+    <ul>
+      <li><a href="#">Profile</a></li>
+      <li><a href="#">Donations</a></li>
+      <li><a href="#">Fundraising</a></li>
+      <li><a href="#">Withdrawals</a></li>
+      <li><a href="#">Downlines</a></li>
+      <li><a href="{% url 'admin:dutaziswaf_accounts_user_change' instance.id %}">Edit</a></li>
+    </ul>
+    <h3>{% trans 'Balance' %}</h3>
+    <ul>
+      <li><a href="#">Campaign Fee : {{ instance.referral.fee_campaign }}</a></li>
+      <li><a href="#">Downline Fee 0 : {{ instance.referral.fee_downline_0 }}</a></a></li>
+      <li><a href="#">Downline Fee 1 : {{ instance.referral.fee_downline_1 }}</a></a></li>
+      <li><a href="#">Downline Fee 2 : {{ instance.referral.fee_downline_2 }}</a></a></li>
+      <li><a href="#">Total Fee 3 : {{ instance.referral.total_fee }}</a></a></li>
+    </ul>
+
+  </div>
+</div>
+{% endblock %}

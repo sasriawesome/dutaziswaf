@@ -29,6 +29,14 @@ INSTALLED_APPS = [
     'home',
     'search',
 
+    'dutaziswaf.accounts',
+    'dutaziswaf.donations',
+
+    'django_numerators',
+    'django_extra_referrals',
+    'django_fundraisers',
+    'django_cashflow',
+
     'wagtail.contrib.forms',
     'wagtail.contrib.redirects',
     'wagtail.contrib.modeladmin',
