@@ -26,11 +26,14 @@ BASE_DIR = os.path.dirname(PROJECT_DIR)
 # Application definition
 
 INSTALLED_APPS = [
-    'home',
-    'search',
+        'dutaziswaf.home',
+    'dutaziswaf.search',
+    'dutaziswaf.accounts',
+    'dutaziswaf.donations',
 
     'wagtail.contrib.forms',
     'wagtail.contrib.redirects',
+    'wagtail.contrib.modeladmin',
     'wagtail.embeds',
     'wagtail.sites',
     'wagtail.users',
@@ -41,15 +44,32 @@ INSTALLED_APPS = [
     'wagtail.admin',
     'wagtail.core',
 
+    'wagtailfontawesome',
+    'widget_tweaks',
+    'polymorphic',
     'modelcluster',
     'taggit',
+    'mptt',
+
+    'django_numerators',
+    'django_extra_referrals',
+    'django_fundraisers',
+    'django_cashflow',
 
     'django.contrib.admin',
+    'django.contrib.admindocs',
+    'django.contrib.sites',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.humanize',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
 ]
 
 MIDDLEWARE = [
