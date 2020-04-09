@@ -26,10 +26,8 @@ BASE_DIR = os.path.dirname(PROJECT_DIR)
 # Application definition
 
 INSTALLED_APPS = [
-        'dutaziswaf.home',
-    'dutaziswaf.search',
-    'dutaziswaf.accounts',
-    'dutaziswaf.donations',
+    'home',
+    'search',
 
     'wagtail.contrib.forms',
     'wagtail.contrib.redirects',
