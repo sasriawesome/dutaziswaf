@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
 
     'allauth',
@@ -171,7 +170,7 @@ MEDIA_URL = '/media/'
 
 
 # Wagtail settings
-
+SITE_ID = 1
 WAGTAIL_SITE_NAME = "playground"
 
 # Base URL to use when referring to full URLs within the Wagtail admin backend -
