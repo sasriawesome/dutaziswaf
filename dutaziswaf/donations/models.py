@@ -173,6 +173,27 @@ class ReferralWithdraw(Withdraw):
         Transaction,
         related_query_name='transactions')
 
+    def referral_schema(self):
+        fee_schema = get_fee_schema_class()
+        schema = fee_schema(self)
+        return schema
+
+    def confirm(self, request):
+        with transaction.atomic():
+            schema = self.referral_schema()
+            schema.send_referral_balance()
+            self.is_paid = True
+            self.is_cancelled = False
+            self.save()
+
+    def cancel(self, request):
+        with transaction.atomic():
+            schema = self.referral_schema()
+            schema.cancel_transaction('IN')
+            self.is_paid = True
+            self.is_cancelled = False
+            self.save()
+
 
 class FundraiserWithdraw(Withdraw):
     class Meta:
@@ -187,6 +208,27 @@ class FundraiserWithdraw(Withdraw):
     transaction = GenericRelation(
         FundraiserTransaction,
         related_query_name='transactions')
+
+    def get_fundraiser_schema(self):
+        funding_schema = get_funding_schema_class()
+        schema = funding_schema(self)
+        return schema
+
+    def confirm(self, request):
+        with transaction.atomic():
+            schema = self.get_fundraiser_schema()
+            schema.send_fundraiser_balance()
+            self.is_paid = True
+            self.is_cancelled = False
+            self.save()
+
+    def cancel(self, request):
+        with transaction.atomic():
+            schema = self.get_fundraiser_schema()
+            schema.cancel_transaction('IN')
+            self.is_paid = True
+            self.is_cancelled = False
+            self.save()
 
 
 class PaymentConfirmation(NumeratorMixin):

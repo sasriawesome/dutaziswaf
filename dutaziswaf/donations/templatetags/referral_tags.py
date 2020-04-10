@@ -36,7 +36,8 @@ def referral_summary(context):
         'withdraw_value': total_withdraw or 0,
         'balance_value': referral.balance or 0,
         'downlines_count': referral.downlines.count() or 0,
-        'fundraisers_count': referral.account.fundraisers.count() or 0
+        'fundraisers_count': referral.account.fundraisers.count() or 0,
+        'transactions': referral.transactions.all()[:10]
     }
 
 

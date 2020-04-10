@@ -14,8 +14,9 @@ from dutaziswaf.donations.models import (
 from .helpers import (
     ReadOnlyPermissionHelper,
     DonationPermissionHelper,
+    WithdrawPermissionHelper,
     ConfirmCancelButtonHelper,
-    ConfirmCancelURLHelper
+    ConfirmCancelURLHelper,
 )
 from .views import (
     ConfirmView, CancelView
@@ -147,30 +148,11 @@ class ReferralTransactionModelAdmin(ModelAdmin):
     list_display = ['referral', 'note', 'flow', 'total', 'created_at']
 
 
-class DonationModelAdmin(ModelAdmin):
-    model = Donation
-    inspect_view_enabled = True
-    permission_helper_class = DonationPermissionHelper
+class ConfirmCancelAdminMixin(ModelAdmin):
     button_helper_class = ConfirmCancelButtonHelper
     url_helper_class = ConfirmCancelURLHelper
     confirm_view_class = ConfirmView
     cancel_view_class = CancelView
-    menu_icon = 'fa-list-ul',
-    menu_label = _('Donations')
-    list_select_related = ['creator', 'referral', 'campaigner', 'fundraiser']
-    search_fields = ['fullname', 'creator__first_name', 'creator__last_name', 'creator__user_name']
-    list_display = ['inner_id', 'fullname', 'amount', 'fundraiser', 'referral', 'campaigner', 'is_paid', 'is_cancelled']
-
-    edit_handler = ObjectList([
-        MultiFieldPanel([
-            FieldPanel('fullname'),
-            FieldPanel('agreement'),
-            FieldPanel('referral'),
-            FieldPanel('fundraiser'),
-            # FieldPanel('campaigner'),
-            FieldPanel('donation'),
-        ])
-    ])
 
     def get_admin_urls_for_registration(self):
         urls = super().get_admin_urls_for_registration()
@@ -193,6 +175,64 @@ class DonationModelAdmin(ModelAdmin):
         kwargs = {'model_admin': self, 'instance_pk': instance_pk}
         view_class = self.cancel_view_class
         return view_class.as_view(**kwargs)(request)
+
+
+class DonationModelAdmin(ConfirmCancelAdminMixin, ModelAdmin):
+    model = Donation
+    inspect_view_enabled = True
+    permission_helper_class = DonationPermissionHelper
+    menu_icon = 'fa-list-ul',
+    menu_label = _('Donations')
+    list_select_related = ['creator', 'referral', 'campaigner', 'fundraiser']
+    search_fields = ['fullname', 'creator__first_name', 'creator__last_name', 'creator__user_name']
+    list_display = ['inner_id', 'fullname', 'amount', 'fundraiser', 'referral', 'campaigner', 'is_paid', 'is_cancelled']
+
+    edit_handler = ObjectList([
+        MultiFieldPanel([
+            FieldPanel('fullname'),
+            FieldPanel('agreement'),
+            FieldPanel('referral'),
+            FieldPanel('fundraiser'),
+            # FieldPanel('campaigner'),
+            FieldPanel('donation'),
+        ])
+    ])
+
+
+class ReferralWithdrawModelAdmin(ConfirmCancelAdminMixin, ModelAdmin):
+    model = ReferralWithdraw
+    inspect_view_enabled = True
+    permission_helper_class = WithdrawPermissionHelper
+    menu_icon = 'fa-list-ul',
+    menu_label = _('Withdraw')
+    list_display = ['inner_id', 'referral', 'amount', 'creator', 'is_paid', 'is_cancelled']
+
+    edit_handler = ObjectList([
+        MultiFieldPanel([
+            FieldPanel('fullname'),
+            FieldPanel('referral'),
+            FieldPanel('amount'),
+            FieldPanel('creator'),
+        ])
+    ])
+
+
+class FundraiserWithdrawModelAdmin(ConfirmCancelAdminMixin, ModelAdmin):
+    model = FundraiserWithdraw
+    inspect_view_enabled = True
+    permission_helper_class = WithdrawPermissionHelper
+    menu_icon = 'fa-list-ul',
+    menu_label = _('Withdraw')
+    list_display = ['inner_id', 'fundraiser', 'amount', 'creator', 'is_paid', 'is_cancelled']
+
+    edit_handler = ObjectList([
+        MultiFieldPanel([
+            FieldPanel('fullname'),
+            FieldPanel('fundraiser'),
+            FieldPanel('amount'),
+            FieldPanel('creator'),
+        ])
+    ])
 
 
 class PaymentConfirmationModelAdmin(ModelAdmin):
@@ -226,42 +266,6 @@ class PaymentConfirmationModelAdmin(ModelAdmin):
             FieldPanel('bank_name'),
             FieldPanel('payment_method'),
         ], heading=_("Informasi Pengiriman"))
-    ])
-
-
-class ReferralWithdrawModelAdmin(ModelAdmin):
-    model = ReferralWithdraw
-    inspect_view_enabled = True
-    permission_helper_class = DonationPermissionHelper
-    menu_icon = 'fa-list-ul',
-    menu_label = _('Withdraw')
-    list_display = ['inner_id', 'referral', 'amount', 'creator', 'is_paid', 'is_cancelled']
-
-    edit_handler = ObjectList([
-        MultiFieldPanel([
-            FieldPanel('fullname'),
-            FieldPanel('referral'),
-            FieldPanel('amount'),
-            FieldPanel('creator'),
-        ])
-    ])
-
-
-class FundraiserWithdrawModelAdmin(ModelAdmin):
-    model = FundraiserWithdraw
-    inspect_view_enabled = True
-    permission_helper_class = DonationPermissionHelper
-    menu_icon = 'fa-list-ul',
-    menu_label = _('Withdraw')
-    list_display = ['inner_id', 'fundraiser', 'amount', 'creator', 'is_paid', 'is_cancelled']
-
-    edit_handler = ObjectList([
-        MultiFieldPanel([
-            FieldPanel('fullname'),
-            FieldPanel('fundraiser'),
-            FieldPanel('amount'),
-            FieldPanel('creator'),
-        ])
     ])
 
 

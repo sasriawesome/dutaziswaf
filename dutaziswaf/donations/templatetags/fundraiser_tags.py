@@ -25,6 +25,7 @@ def fundraiser_summary(context):
         'fundraised_value': total_fundraised or 0,
         'withdraw_value': total_withdraw or 0,
         'balance_value': fundraiser.balance or 0,
+        'transactions': fundraiser.transactions.all()[:10]
     }
 
 @register.simple_tag(takes_context=True)

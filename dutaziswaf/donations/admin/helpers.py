@@ -121,3 +121,26 @@ class DonationPermissionHelper(ConfirmCancelPermissionHelper, PermissionHelper):
             if obj.is_paid:
                 return False
         return super().user_can_confirm_obj(user, obj)
+
+
+class WithdrawPermissionHelper(ConfirmCancelPermissionHelper, PermissionHelper):
+    def user_can_edit_obj(self, user, obj):
+        if obj:
+            if obj.is_cancelled or obj.is_paid:
+                return False
+        return super().user_can_edit_obj(user, obj)
+
+    def user_can_delete_obj(self, user, obj):
+        return False
+
+    def user_can_cancel_obj(self, user, obj):
+        if obj:
+            if not obj.is_paid or obj.is_cancelled:
+                return False
+        return super().user_can_cancel_obj(user, obj)
+
+    def user_can_confirm_obj(self, user, obj):
+        if obj:
+            if obj.is_paid:
+                return False
+        return super().user_can_confirm_obj(user, obj)

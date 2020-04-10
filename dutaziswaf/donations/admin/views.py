@@ -44,20 +44,26 @@ class ConfirmView(InstanceSpecificView):
                 inner_id=request.POST.get('inner_id')
             )
             return self.render_to_response(context)
-
-        try:
-            msg = _("%(model_name)s '%(instance)s' confirmed.") % {
-                'model_name': self.verbose_name,
-                'instance': self.instance
-            }
-            self.confirm_instance()
-            messages.success(request, msg)
-            return redirect(self.index_url)
-        except Exception as err:
-            context = self.get_context_data(
-                confirmation_error=True,
-            )
-            return self.render_to_response(context)
+        msg = _("%(model_name)s '%(instance)s' confirmed.") % {
+            'model_name': self.verbose_name,
+            'instance': self.instance
+        }
+        self.confirm_instance()
+        messages.success(request, msg)
+        return redirect(self.index_url)
+        # try:
+        #     msg = _("%(model_name)s '%(instance)s' confirmed.") % {
+        #         'model_name': self.verbose_name,
+        #         'instance': self.instance
+        #     }
+        #     self.confirm_instance()
+        #     messages.success(request, msg)
+        #     return redirect(self.index_url)
+        # except Exception as err:
+        #     context = self.get_context_data(
+        #         confirmation_error=True,
+        #     )
+        #     return self.render_to_response(context)
 
     def get_template_names(self):
         return (
