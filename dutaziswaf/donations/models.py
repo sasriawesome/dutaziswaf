@@ -147,6 +147,11 @@ class Withdraw(PolymorphicModel, NumeratorMixin):
         primary_key=True,
         verbose_name='uuid')
     fullname = models.CharField(max_length=150)
+    payment_method = models.ForeignKey(
+        Cash, null=True, blank=False,
+        on_delete=models.PROTECT,
+        related_name='withdraws',
+        verbose_name=_('Payment Method'))
     amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     is_paid = models.BooleanField(default=False)
     is_cancelled = models.BooleanField(default=False)

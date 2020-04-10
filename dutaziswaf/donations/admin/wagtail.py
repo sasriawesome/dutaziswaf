@@ -194,6 +194,7 @@ class DonationModelAdmin(ConfirmCancelAdminMixin, ModelAdmin):
             FieldPanel('referral'),
             FieldPanel('fundraiser'),
             # FieldPanel('campaigner'),
+            FieldPanel('payment_method'),
             FieldPanel('donation'),
         ])
     ])
@@ -211,6 +212,7 @@ class ReferralWithdrawModelAdmin(ConfirmCancelAdminMixin, ModelAdmin):
         MultiFieldPanel([
             FieldPanel('fullname'),
             FieldPanel('referral'),
+            FieldPanel('payment_method'),
             FieldPanel('amount'),
             FieldPanel('creator'),
         ])
@@ -229,6 +231,7 @@ class FundraiserWithdrawModelAdmin(ConfirmCancelAdminMixin, ModelAdmin):
         MultiFieldPanel([
             FieldPanel('fullname'),
             FieldPanel('fundraiser'),
+            FieldPanel('payment_method'),
             FieldPanel('amount'),
             FieldPanel('creator'),
         ])
