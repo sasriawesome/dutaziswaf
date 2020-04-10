@@ -194,3 +194,5 @@ DATABASES['default'].update(dj_database_url.config(conn_max_age=500, ssl_require
 
 # STATICFILES and STORAGE
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+DEBUG_PROPAGATE_EXCEPTIONS = True
