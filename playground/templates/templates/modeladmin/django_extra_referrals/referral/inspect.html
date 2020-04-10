@@ -1,0 +1,49 @@
+{% extends "modeladmin/inspect.html" %}
+{% load i18n wagtailadmin_tags ziswaf_tags referral_tags %}
+
+{% block extra_css %}
+{{ block.super }}
+{% endblock %}
+
+{% block fields_output %}
+<div>
+  <div class="col2">
+    <div class="avatar fluid square">
+      <img src="{{ instance.account.avatar }}" alt="">
+    </div>
+  </div>
+  <div class="col10">
+    <div class="col12">
+      <h1 class="m-0 font-weight-bold" style="font-size: 1.6rem;">{{ instance.account.get_full_name }}</h1>
+      <p>REF.ID #{{ instance.inner_id }}</p>
+    </div>
+    {% referral_summary as summary %}
+    <div>
+      <div class="col2 text-center">
+        <h1 class="mb-0">{{ summary.donation_value|money:0 }}</h1>
+        <p>{% trans 'Donation' %} (Rp)</p>
+      </div>
+      <div class="col2 text-center">
+        <h1 class="mb-0">{{ summary.fundraised_value|money:0 }}</h1>
+        <p>{% trans 'Fundraised' %} (Rp)</p>
+      </div>
+      <div class="col2 text-center">
+        <h1 class="mb-0">{{ summary.withdraw_value }}</h1>
+        <p>{% trans 'Withdrawal' %} (Rp)</p>
+      </div>
+      <div class="col2 text-center">
+        <h1 class="mb-0">{{ summary.balance_value|money:0 }}</h1>
+        <p>{% trans 'Balance' %} (Rp)</p>
+      </div>
+      <div class="col2 text-center">
+        <h1 class="mb-0">{{ summary.downlines_count }}</h1>
+        <p>{% trans 'Downlines' %}</p>
+      </div>
+      <div class="col2 text-center">
+        <h1 class="mb-0">{{ summary.fundraisers_count }}</h1>
+        <p>{% trans 'Fundraisers' %}</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

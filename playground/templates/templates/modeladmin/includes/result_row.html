@@ -1,0 +1,28 @@
+{% load modeladmin_tags %}
+<tr{{ row_attrs }}>
+    <td  width="70">
+        {% if action_buttons %}
+        <div class="c-dropdown u-para t-default" data-dropdown="">
+            <a class="c-dropdown__button  u-btn-current">
+                More
+                <div data-dropdown-toggle="" class="o-icon  c-dropdown__toggle  [ icon icon-arrow-down ]"></div>
+            </a>
+            <div class="t-dark">
+                <nav aria-label="Inline dropdown menu example">
+                    <ul class="c-dropdown__menu  u-toggle  u-arrow u-arrow--tl u-background">
+                        {% for button in action_buttons %}
+                        <li class="c-dropdown__item ">
+                            {% include 'modeladmin/includes/dropdown.html' %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        {% endif %}
+    </td>
+    {% for item in result %}
+        {% result_row_value_display forloop.counter0 %}
+    {% endfor %}
+
+</tr>

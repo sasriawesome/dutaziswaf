@@ -1,0 +1,38 @@
+{% extends "modeladmin/inspect.html" %}
+{% load i18n wagtailadmin_tags ziswaf_tags fundraiser_tags %}
+
+{% block extra_css %}
+{{ block.super }}
+{% endblock %}
+
+{% block fields_output %}
+<div>
+  <div class="col2">
+    <div class="avatar fluid square">
+      <img src="{% fundraiser_avatar %}" alt="">
+    </div>
+  </div>
+  <div class="col10">
+    <div class="col12">
+      <strong>{% trans 'founder' as founder %} {{ founder | upper }}</strong>: {{ instance.founder }}
+      <h1 class="m-0 font-weight-bold" style="font-size: 1.6rem;">{{ instance.name }}</h1>
+      <p>REF.ID #{{ instance.inner_id }}</p>
+    </div>
+    {% fundraiser_summary as summary %}
+    <div>
+      <div class="col2 text-center">
+        <h1 class="mb-0">{{ summary.fundraised_value }}</h1>
+        <p>{% trans 'Fundraised' %} (Rp)</p>
+      </div>
+      <div class="col2 text-center">
+        <h1 class="mb-0">{{ summary.withdraw_value }}</h1>
+        <p>{% trans 'Withdrawal' %} (Rp)</p>
+      </div>
+      <div class="col2 text-center">
+        <h1 class="mb-0">{{ summary.balance_value }}</h1>
+        <p>{% trans 'Balance' %} (Rp)</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
