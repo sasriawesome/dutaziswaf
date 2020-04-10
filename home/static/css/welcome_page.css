@@ -58,7 +58,7 @@ svg:not(:root) {
 }
 
 .logo {
-    width: 150px;
+    width: 220px;
     margin-right: 20px;
 }
 
@@ -67,7 +67,7 @@ svg:not(:root) {
 }
 
 .figure-logo {
-    max-width: 150px;
+    max-width: 220px;
     max-height: 55.1px;
 }
 
