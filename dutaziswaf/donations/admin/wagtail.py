@@ -1,6 +1,7 @@
 from django.utils import translation
+from django.conf.urls import url
+from django.shortcuts import HttpResponse
 from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, modeladmin_register
-from wagtail.contrib.modeladmin.helpers import PermissionHelper
 from wagtail.admin.edit_handlers import FieldPanel, MultiFieldPanel, ObjectList
 
 from django_extra_referrals.models import Referral, Transaction
@@ -8,32 +9,19 @@ from django_fundraisers.models import Fundraiser, FundraiserTransaction
 from django_cashflow.models import CashAccount, BankAccount
 
 from dutaziswaf.donations.models import (
-    Donation, Agreement, PaymentConfirmation, FundraiserWithdraw, ReferralWithdraw
+    Donation, Agreement, PaymentConfirmation, FundraiserWithdraw, ReferralWithdraw)
+
+from .helpers import (
+    ReadOnlyPermissionHelper,
+    DonationPermissionHelper,
+    ConfirmCancelButtonHelper,
+    ConfirmCancelURLHelper
+)
+from .views import (
+    ConfirmView, CancelView
 )
 
 _ = translation.ugettext_lazy
-
-
-class ReadOnlyPermissionHelper(PermissionHelper):
-    def user_can_edit_obj(self, user, obj):
-        return False
-
-    def user_can_create(self, user):
-        return False
-
-    def user_can_delete_obj(self, user, obj):
-        return False
-
-
-class DonationPermissionHelper(PermissionHelper):
-    def user_can_edit_obj(self, user, obj):
-        if obj:
-            if obj.is_cancelled or obj.is_paid:
-                return False
-        return super().user_can_edit_obj(user, obj)
-
-    def user_can_delete_obj(self, user, obj):
-        return False
 
 
 class AgreementModelAdmin(ModelAdmin):
@@ -163,6 +151,10 @@ class DonationModelAdmin(ModelAdmin):
     model = Donation
     inspect_view_enabled = True
     permission_helper_class = DonationPermissionHelper
+    button_helper_class = ConfirmCancelButtonHelper
+    url_helper_class = ConfirmCancelURLHelper
+    confirm_view_class = ConfirmView
+    cancel_view_class = CancelView
     menu_icon = 'fa-list-ul',
     menu_label = _('Donations')
     list_select_related = ['creator', 'referral', 'campaigner', 'fundraiser']
@@ -179,6 +171,28 @@ class DonationModelAdmin(ModelAdmin):
             FieldPanel('donation'),
         ])
     ])
+
+    def get_admin_urls_for_registration(self):
+        urls = super().get_admin_urls_for_registration()
+        urls += (
+            url(self.url_helper.get_action_url_pattern('confirm'),
+                self.confirm_view,
+                name=self.url_helper.get_action_url_name('confirm')),
+            url(self.url_helper.get_action_url_pattern('cancel'),
+                self.cancel_view,
+                name=self.url_helper.get_action_url_name('cancel')),
+        )
+        return urls
+
+    def confirm_view(self, request, instance_pk):
+        kwargs = {'model_admin': self, 'instance_pk': instance_pk}
+        view_class = self.confirm_view_class
+        return view_class.as_view(**kwargs)(request)
+
+    def cancel_view(self, request, instance_pk):
+        kwargs = {'model_admin': self, 'instance_pk': instance_pk}
+        view_class = self.cancel_view_class
+        return view_class.as_view(**kwargs)(request)
 
 
 class PaymentConfirmationModelAdmin(ModelAdmin):

@@ -1,13 +1,15 @@
 import uuid
 import random
-from django.db import models
+from django.db import models, transaction
 from django.utils import translation
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django_extra_referrals.models import AbstractReceivable
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.auth import get_user_model
 
+from django_fundraisers.fundingchema import get_funding_schema_class
 from django_fundraisers.models import Fundraiser, FundraiserTransaction
+from django_extra_referrals.feeschema import get_fee_schema_class
 from django_extra_referrals.models import Referral, Transaction
 from django_numerators.models import NumeratorMixin
 from django_cashflow.models import Cash
@@ -89,10 +91,38 @@ class Donation(AbstractReceivable):
         verbose_name=_('Payment Method'))
 
     def __str__(self):
-        return self.fullname
+        return "Donation #{}".format(self.inner_id)
 
     def calculate_total(self):
         self.amount = self.donation + self.random
+
+    def confirm(self, request):
+        with transaction.atomic():
+            if self.referral or self.campaigner:
+                fee_schema = get_fee_schema_class()
+                schema = fee_schema(self)
+                schema.receive_referral_balance()
+            if self.fundraiser:
+                funding_schema = get_funding_schema_class()
+                schema = funding_schema(self)
+                schema.receive_fundraiser_balance()
+            self.is_paid = True
+            self.is_cancelled = False
+            self.save()
+
+    def cancel(self, request):
+        with transaction.atomic():
+            if self.referral or self.campaigner:
+                fee_schema = get_fee_schema_class()
+                schema = fee_schema(self)
+                schema.cancel_transaction('IN')
+            if self.fundraiser:
+                funding_schema = get_funding_schema_class()
+                schema = funding_schema(self)
+                schema.cancel_transaction('IN')
+            self.is_paid = False
+            self.is_cancelled = True
+            self.save()
 
     def save(self, *args, **kwargs):
         if self._state.adding:
