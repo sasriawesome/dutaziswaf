@@ -4,6 +4,7 @@ from django.utils import translation, timezone
 from django.core.validators import MinValueValidator
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 from polymorphic.models import PolymorphicModel
 
@@ -70,15 +71,19 @@ class BankAccount(Cash):
         return self.bank_name
 
 
-class MutationAbstract(NumeratorMixin):
+class Mutation(NumeratorMixin):
     class Meta:
-        abstract = True
+        ordering = ['-created_at']
+        verbose_name = _("Mutation")
+        verbose_name_plural = _("Mutations")
 
+    doc_prefix = 'CS'
     id = models.UUIDField(
         default=uuid.uuid4,
         editable=False,
         primary_key=True,
         verbose_name='uuid')
+
     content_type = models.ForeignKey(
         ContentType,
         models.SET_NULL,
@@ -88,6 +93,27 @@ class MutationAbstract(NumeratorMixin):
         _('reference id'),
         max_length=100,
         blank=True, null=True)
+    content_object = GenericForeignKey()
+
+    cash_account = models.ForeignKey(
+        Cash, on_delete=models.PROTECT,
+        related_name='mutations',
+        verbose_name=_('Cash Account'))
+    transfer_receipt = models.ImageField(
+        null=True, blank=True,
+        verbose_name=_("Transfer receipt"))
+    account_name = models.CharField(
+        max_length=255,
+        verbose_name=_("Account Name"),
+        help_text=_('Account/holder name.'))
+    account_number = models.CharField(
+        max_length=255,
+        verbose_name=_("Account Number"),
+        help_text=_('Account number/ID.'))
+    provider_name = models.CharField(
+        max_length=255,
+        verbose_name=_("Provider name"),
+        help_text=_('Provider. (Bank Mandiri or Gopay)'))
     flow = models.CharField(
         max_length=3,
         editable=False,
@@ -131,14 +157,21 @@ class MutationAbstract(NumeratorMixin):
         related_name='%(class)ss',
         verbose_name=_("creator"))
 
-    def get_amount(self):
-        raise NotImplementedError
+    def __str__(self):
+        return self.inner_id
 
     def get_cash_account(self):
-        raise NotImplementedError
+        return self.cash_account
+
+    def get_amount(self):
+        return self.amount
+
+    def get_reference(self):
+        return self.content_type.get_object_for_this_type(pk=self.object_id)
 
     def update_account_balance(self):
-        raise NotImplementedError
+        self.cash_account.balance = self.balance
+        self.cash_account.save_update()
 
     def increase_balance(self):
         self.balance = self.get_cash_account().balance + self.amount
@@ -156,101 +189,3 @@ class MutationAbstract(NumeratorMixin):
         self.amount = self.get_amount()
         self.calculate_balance()
         super().save(*args, **kwargs)
-
-        # update balance
-        self.update_account_balance()
-
-
-class Mutation(MutationAbstract, PolymorphicModel):
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = _("Mutation")
-        verbose_name_plural = _("Mutations")
-
-    doc_prefix = 'CS'
-    parent_prefix = True
-    parent_model = 'Mutation'
-    cash_account = models.ForeignKey(
-        Cash, on_delete=models.PROTECT,
-        related_name='mutations',
-        verbose_name=_('Cash Account'))
-    transfer_receipt = models.ImageField(
-        null=True, blank=True,
-        verbose_name=_("Transfer receipt"))
-
-    def __str__(self):
-        return "{} ".format(self.inner_id)
-
-    def get_cash_account(self):
-        return self.cash_account
-
-    def get_amount(self):
-        return self.amount
-
-    def get_reference(self):
-        """Return the object represented by this mutation entry."""
-        instance = self.get_real_instance()
-        return instance.content_type.get_object_for_this_type(pk=instance.object_id)
-
-    def update_account_balance(self):
-        self.cash_account.balance = self.balance
-        self.cash_account.save_update()
-
-
-class Checkout(Mutation):
-    class Meta:
-        verbose_name = _("Checkout")
-        verbose_name_plural = _("Checkouts")
-
-    account_name = models.CharField(
-        max_length=255,
-        verbose_name=_("Account Name"),
-        help_text=_('Destination account/holder name.'))
-    account_number = models.CharField(
-        max_length=255,
-        verbose_name=_("Account Number"),
-        help_text=_('Destination account number.'))
-    provider_name = models.CharField(
-        max_length=255,
-        verbose_name=_("Provider name"),
-        help_text=_('Destination provider. (Bank Mandiri or Gopay)'))
-
-    def save(self, *args, **kwargs):
-        self.flow = 'OUT'
-        super().save(*args, kwargs)
-
-
-class Checkin(Mutation):
-    class Meta:
-        verbose_name = _("Checkin")
-        verbose_name_plural = _("Checkins")
-
-    account_name = models.CharField(
-        max_length=255,
-        verbose_name=_("Account Name"),
-        help_text=_('Origin account/holder name.'))
-    account_number = models.CharField(
-        max_length=255,
-        verbose_name=_("Account Number"),
-        help_text=_('Origin account number.'))
-    provider_name = models.CharField(
-        max_length=255,
-        verbose_name=_("Provider name"),
-        help_text=_('Origin provider. (Bank Mandiri or Gopay)'))
-
-    def save(self, *args, **kwargs):
-        self.flow = 'IN'
-        super().save(*args, kwargs)
-
-
-class PayableMixin(models.Model):
-    class Meta:
-        abstract = True
-
-    paid_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Paid at"))
-    is_paid = models.BooleanField(default=False, verbose_name=_("Paid at"))
-
-    def make_paid(self):
-        self.paid_at = timezone.now()
-        self.is_paid = True
-        self.save()
