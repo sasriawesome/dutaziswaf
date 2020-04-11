@@ -29,7 +29,7 @@
         <p>{% trans 'Fundraised' %} (Rp)</p>
       </div>
       <div class="col2 text-center">
-        <h1 class="mb-0">{{ summary.withdraw_value | money }}</h1>
+        <h1 class="mb-0">{{ summary.withdraw_value | money:0 }}</h1>
         <p>{% trans 'Withdrawal' %} (Rp)</p>
       </div>
       <div class="col2 text-center">
