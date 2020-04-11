@@ -4,7 +4,7 @@ from django.contrib import admin
 from django_extra_referrals.feeschema import get_fee_schema_class
 from django_fundraisers.fundingchema import get_funding_schema_class
 
-from .models import Donation, ReferralWithdraw, FundraiserWithdraw, Agreement
+from dutaziswaf.donations.models import Donation, ReferralWithdraw, FundraiserWithdraw, Agreement
 
 
 class DonationAdmin(admin.ModelAdmin):

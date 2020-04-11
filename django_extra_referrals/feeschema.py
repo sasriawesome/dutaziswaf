@@ -30,7 +30,7 @@ class FeeSchema:
         self.opts = obj._meta
         self.amount = obj.amount
         self.referral = obj.referral
-        self.campaigner = obj.campaigner
+        self.campaigner = getattr(obj, 'campaigner', None)
         self.instance = obj
 
     def get_upline_rates(self):

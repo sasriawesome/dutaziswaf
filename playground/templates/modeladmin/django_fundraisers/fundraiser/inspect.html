@@ -21,18 +21,46 @@
     {% fundraiser_summary as summary %}
     <div>
       <div class="col2 text-center">
-        <h1 class="mb-0">{{ summary.fundraised_value }}</h1>
+        <h1 class="mb-0">{{ summary.fundraised_value | money:0 }}</h1>
         <p>{% trans 'Fundraised' %} (Rp)</p>
       </div>
       <div class="col2 text-center">
-        <h1 class="mb-0">{{ summary.withdraw_value }}</h1>
+        <h1 class="mb-0">{{ summary.withdraw_value | money:0 }}</h1>
         <p>{% trans 'Withdrawal' %} (Rp)</p>
       </div>
       <div class="col2 text-center">
-        <h1 class="mb-0">{{ summary.balance_value }}</h1>
+        <h1 class="mb-0">{{ summary.balance_value | money:0 }}</h1>
         <p>{% trans 'Balance' %} (Rp)</p>
       </div>
     </div>
+  </div>
+  <div class="col12 mt-5 mb-5">
+    <table class="listing full-width">
+      <thead>
+      <tr>
+        <th>#</th>
+        <th>{% trans 'Date' %}</th>
+        <th>{% trans 'Note' %}</th>
+        <th>{% trans 'Flow' %}</th>
+        <th class="text-right">{% trans 'Amount' %}</th>
+        <th class="text-right">{% trans 'Rate' %}</th>
+        <th class="text-right">{% trans 'Total' %}</th>
+        <th class="text-right">{% trans 'Balance' %}</th>
+      </tr>
+      </thead>
+      {% for item in summary.transactions %}
+      <tr>
+        <td>{{ item.inner_id }}</td>
+        <td>{{ item.created_at }}</td>
+        <td>{{ item.note }}</td>
+        <td>{{ item.flow }}</td>
+        <td class="text-right">{{ item.amount | money:0 }}</td>
+        <td class="text-right">{{ item.rate | money:0 }}</td>
+        <td class="text-right">{{ item.total | money:0 }}</td>
+        <td class="text-right">{{ item.balance | money:0 }}</td>
+      </tr>
+      {% endfor %}
+    </table>
   </div>
 </div>
 {% endblock %}
