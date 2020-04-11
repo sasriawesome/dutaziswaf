@@ -312,3 +312,82 @@ class PaymentConfirmation(NumeratorMixin):
 
     def save(self, *args, **kwargs):
         super().save(*args, kwargs)
+
+
+class WithdrawRequest(NumeratorMixin):
+    class Meta:
+        verbose_name = _("Withdraw Request")
+        verbose_name_plural = _("Withdraw Request")
+
+    doc_prefix = 'CM'
+
+    id = models.UUIDField(
+        default=uuid.uuid4,
+        editable=False,
+        primary_key=True,
+        verbose_name='uuid')
+    creator = models.ForeignKey(
+        get_user_model(),
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='withdraw_requests',
+        verbose_name=_("Creator"))
+
+    # TODO provide strict validation here
+    fundraiser = models.ForeignKey(
+        Fundraiser,
+        null=True, blank=True,
+        on_delete=models.CASCADE,
+        related_name='withdraw_requests',
+        verbose_name=_('Fundraiser'),
+        help_text=_('Choose if you want to withdraw your fundraiser account '))
+
+    withdraw_account_name = models.CharField(
+        max_length=255,
+        verbose_name=_("Account Name"),
+        help_text=_('Your payment account name.'))
+    withdraw_account_number = models.CharField(
+        max_length=255,
+        verbose_name=_("Account Number"),
+        help_text=_('Your payment account number.'))
+    withdraw_provider_name = models.CharField(
+        max_length=255,
+        verbose_name=_("Provider name"),
+        help_text=_('Your payment provide name. eg. Bank Mandiri'))
+
+    withdraw_method = models.ForeignKey(
+        Cash,
+        on_delete=models.PROTECT,
+        limit_choices_to={'checkout': True},
+        related_name='withdraw_requests',
+        verbose_name=_('Payment Method'))
+
+    amount = models.DecimalField(
+        default=10000, max_digits=15, decimal_places=0,
+        validators=[MinValueValidator(10000)],
+        verbose_name=_("Amount"),
+        help_text=_("Donation amount to be sent"))
+    note = models.TextField(
+        max_length=500,
+        null=True, blank=True,
+        verbose_name=_("Note"),
+        help_text=_('Need help? please tell us.'))
+
+    is_verified = models.BooleanField(default=False)
+    verified_at = models.DateTimeField(
+        null=True, blank=True,
+        editable=False,
+        verbose_name=_("Verified at"))
+
+    def __str__(self):
+        return "{} / {}".format(self.inner_id, self.creator)
+
+    def clean(self):
+        # check if foundraiser is provided first
+        # check foundraiser owner
+        # check foundraise amount
+        # check amount
+        pass
+
+    def save(self, *args, **kwargs):
+        super().save(*args, kwargs)

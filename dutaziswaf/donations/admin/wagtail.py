@@ -9,7 +9,8 @@ from django_fundraisers.models import Fundraiser, FundraiserTransaction
 from django_cashflow.models import CashAccount, BankAccount
 
 from dutaziswaf.donations.models import (
-    Donation, Agreement, PaymentConfirmation, FundraiserWithdraw, ReferralWithdraw)
+    Donation, Agreement, PaymentConfirmation,
+    FundraiserWithdraw, ReferralWithdraw, WithdrawRequest)
 
 from .helpers import (
     ReadOnlyPermissionHelper,
@@ -241,7 +242,7 @@ class FundraiserWithdrawModelAdmin(ConfirmCancelAdminMixin, ModelAdmin):
 class PaymentConfirmationModelAdmin(ModelAdmin):
     model = PaymentConfirmation
     menu_icon = 'fa-comments-o',
-    menu_label = _('Confirmations')
+    menu_label = _('Transfer Confirms')
     list_filter = ['created_at', 'is_verified', 'verified_at', ]
     list_display = [
         'created_at',
@@ -272,6 +273,28 @@ class PaymentConfirmationModelAdmin(ModelAdmin):
     ])
 
 
+class WithdrawRequestModelAdmin(ModelAdmin):
+    model = WithdrawRequest
+    menu_icon = 'fa-comments-o',
+    menu_label = _('Withdraw Requests')
+    list_filter = ['created_at', 'is_verified', 'verified_at', ]
+    list_display = ['created_at', 'creator', 'fundraiser', 'amount']
+
+    edit_handler = ObjectList([
+        MultiFieldPanel([
+            FieldPanel('creator'),
+            FieldPanel('fundraiser'),
+            FieldPanel('amount'),
+            FieldPanel('note'),
+        ], heading=_("Informasion")),
+        MultiFieldPanel([
+            FieldPanel('withdraw_account_name'),
+            FieldPanel('withdraw_account_number'),
+            FieldPanel('withdraw_provider_name'),
+            FieldPanel('withdraw_method'),
+        ], heading=_("Withdraw account"))
+    ])
+
 class ReferralModelAdminGroup(ModelAdminGroup):
     menu_icon = 'fa-user-circle-o',
     menu_label = _('Referrals')
@@ -298,7 +321,8 @@ class DonationModelAdminGroup(ModelAdminGroup):
     items = [
         AgreementModelAdmin,
         DonationModelAdmin,
-        PaymentConfirmationModelAdmin
+        PaymentConfirmationModelAdmin,
+        WithdrawRequestModelAdmin
     ]
 
 
